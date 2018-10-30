@@ -36,6 +36,7 @@ N = 10000
 #変数、データの次元数
 D = 2
 
+
 #ファイル読み込み, 2列10000行で取得
 data = np.loadtxt("data1000.txt", delimiter=',', unpack=True)
 
@@ -47,20 +48,6 @@ data = np.loadtxt("data1000.txt", delimiter=',', unpack=True)
 plt.scatter(data[0,:], data[1,:], c='gray', alpha=0.5, marker="+")
 plt.show()
 
-'''
-# =======================================
-# Visualization
-#plt.figure(figsize=(14, 6))
-for k in range(K):
-    plt.plot(xx, pdfs[:, k])
-plt.title("pdfs")
-plt.show()
-
-plt.figure(figsize=(14, 6))
-plt.stackplot(xx, pdfs[:, 0], pdfs[:, 1], pdfs[:, 2])
-plt.title("stacked")
-plt.show()
-'''
 
 '''
 #イテレーション100回
