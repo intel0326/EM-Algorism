@@ -44,12 +44,9 @@ data = np.loadtxt("data1000.txt", delimiter=',', unpack=True)
 #print(data)
 #print(type(data))
 
-#plt.scatter(data[0,:], data[1,:], s=30, c='gray', alpha=0.5, marker="+")
 plt.scatter(data[0,:], data[1,:], c='gray', alpha=0.5, marker="+")
 plt.show()
 
-
-'''
 #イテレーション100回
 for nframe in range(100):
     global mu, sigma, pi
@@ -131,4 +128,3 @@ for nframe in range(100):
         plt.title('likelihood is converged.')
     else:
         plt.title("iter:{}".format(nframe-3))
-'''
