@@ -2,8 +2,9 @@
 import os
 import numpy as np
 import numpy.random as rd
+import numpy.linalg as la
 import scipy as sp
-from scipy import stats as st
+from scipy.stats import multivariate_normal
 from collections import Counter
 
 import matplotlib
@@ -17,7 +18,40 @@ def MixtureGaussian(data, mean, sigma, weight, D, cluster):
     PDF = np.zeros((N, cluster))
     for d in range(D):
         #混合正規分布
-        PDF[:, d] = [weight[d]*st.multivariate_normal.pdf(i, mean[d], sigma[d]) for i in data]
+        #PDF[:, d] = [weight[d]*multivariate_normal.pdf(data_i, mean[d], sigma[d]) for data_i in data]
+        for i, data_i in enumerate(data):
+            PDF[i, d] = weight[d] * multivariate_normal.pdf(data_i, mean[d], sigma[d])
+            #print("i: {0}, d: {1}, PDF: {2}".format(i, d, PDF[i, d]))
+    return PDF
+
+
+def gaussian(data, mean, sigma, weight, D, cluster):
+    PDF = np.zeros((N, cluster))
+    for d in range(D):
+        for i, data_i in enumerate(data):
+
+            #print("data_i: ", data_i)
+            #print("mean[d]: ", mean[d])
+            differ = data_i - mean[d]
+            #print("hiku: ", differ)
+            #print("sigma: ", sigma[d])
+
+            #print("kake", np.dot(differ, np.linalg.inv(sigma[d])))
+            
+            product = np.dot(differ, np.linalg.inv(sigma[d]))
+
+            numerator = np.exp( (-1) * 0.5 * np.dot(product, differ) )
+            
+            print("numerator: ", numerator)
+
+            denominator = np.sqrt((2 * np.pi)**2 * la.det(sigma[d]))
+
+            #print("denominator: ", 1/denominator )
+
+            PDF[i, d] = (1 / denominator) * numerator
+            #print("awase:", (1/denominator)*numerator)
+            
+            #print("i: {0}, d: {1}, PDF: {2}".format(i, d, PDF[i, d]))
     return PDF
 
 
@@ -38,10 +72,12 @@ c = ['r', 'g', 'b']
 
 
 #共分散
+#sigma = np.abs(np.random.randn(cluster, D, D))
 sigma = np.asanyarray(
-    [ [[0.1,  0],[ 0, 0.1]],
-        [[0.1,  0],[ 0, 0.1]] ])
-print('sigma: ', sigma.shape)
+    [ [[0.2,  0.0],[ 0.0, 0.2]],
+        [[0.2,  0.0],[ 0.0, 0.2]] ])
+
+print('sigma: ', sigma)
 print('1分布に対する共分散sigma[d]', sigma[0].shape)
 
 
@@ -53,22 +89,23 @@ for k in range(cluster):
         weight[k] = 1 - np.sum(weight)
     else:
         weight[k] = 1 / cluster
-print('initial weight: ', weight.shape)
+print('initial weight size: ', weight.shape)
+print('initial weight: ', weight)
 
 
 #ファイル読み込み, 2列10000行で取得
 #data = np.loadtxt("data1000.txt", delimiter=',', unpack=True)
 data = np.loadtxt("data1000.txt", delimiter=',')
-print(data.shape)
+#print(data.shape)
 #(10000, 2)
 #print(data)
-#print(type(data))
 
 #平均
 max_x, min_x = np.max(data[:,0]), np.min(data[:,0])
 max_y, min_y = np.max(data[:,1]), np.min(data[:,1])
 mean = np.c_[rd.uniform(low=min_x, high=max_x, size=cluster), rd.uniform(low=min_y, high=max_y, size=cluster) ]
-print('mean: ', mean.shape)
+print('mean shape: ', mean.shape)
+print('mean: ', mean)
 
 '''
 trans_data = data.transpose()
@@ -76,9 +113,11 @@ plt.scatter(trans_data[0, :], trans_data[1, :], c='gray', alpha=0.5, marker="+")
 plt.show()
 '''
 
+print('===========================================')
+
 # ======================================
 #イテレーション100回
-for iteration in range(100):
+for iteration in range(3):
     
     print('iteration:', iteration)
 
@@ -86,8 +125,17 @@ for iteration in range(100):
     # 対数尤度の期待値計算
     # 2次元の混合正規分布を形成
     MG = MixtureGaussian(data, mean, sigma, weight, D, cluster)
+    #MG2 = gaussian(data, mean, sigma, weight, D, cluster)
+    
+    #print(MG.shape)
+    print(MG)
     # モデルパラメータ値で計算される条件付き確率を算出
-    CP = (MG.T/np.sum(MG, axis=1)).T
+    MG_sum = np.sum(MG, axis=1)
+    print("MG_sum: ", MG_sum.shape)
+    print("MG_sum: ", MG_sum)
+    MGT = MG.T
+    print("MG.T: ", MGT.shape)
+    CP = (MG.T/MG_sum).T
 
     '''
     # M ステップ ========================================================================
