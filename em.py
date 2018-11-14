@@ -1,5 +1,6 @@
 #coding: utf-8
 import os
+import os.path as path
 import numpy as np
 import numpy.random as rd
 import numpy.linalg as la
@@ -7,11 +8,45 @@ import scipy as sp
 from scipy.stats import multivariate_normal
 from collections import Counter
 
+import glob
+from PIL import Image
+
 import matplotlib
 from matplotlib import font_manager
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib import rc
+import matplotlib.animation as animation
+
+def first_plot(data, mean):
+
+    if path.exists("result") == False:
+        os.mkdir('result')
+
+    plt.figure()
+    trans_data = data.transpose()
+    plt.scatter(trans_data[0, :], trans_data[1, :], c='gray', alpha=0.5, marker="+")
+    plt.scatter([mean[0, 0]], [mean[0, 1]], c=c[0], marker='o', edgecolors='k', linewidths=1)
+    plt.scatter([mean[1, 0]], [mean[1, 1]], c=c[1], marker='o', edgecolors='k', linewidths=1)
+    plt.savefig("result/EM_first.png", dpi=300)
+
+
+def plot(data, D, mean, mean_pre, c, iteration):
+
+    plt.figure()
+    trans_data = data.transpose()
+    plt.scatter(trans_data[0, :], trans_data[1, :], c='gray', alpha=0.5, marker="+")
+
+    #要編集
+    for i in range(D):
+        ax = plt.axes()
+        ax.arrow(mean_pre[i, 0], mean_pre[i, 1], mean[i, 0]-mean_pre[i, 0], mean[i, 1]-mean_pre[i, 1],
+                  lw=0.8, head_width=0.02, head_length=0.02, fc='k', ec='k')
+        plt.scatter([mean_pre[i, 0]], [mean_pre[i, 1]], c=c[i], marker='o', edgecolors='k', alpha=0.8, linewidths=1)
+        plt.scatter([mean[i, 0]], [mean[i, 1]], c=c[i], marker='o', edgecolors='k', linewidths=1)
+    plt.title("step:{}".format(iteration))
+    #plt.show()
+    plt.savefig("result/EM_result_{0}.png".format(iteration), dpi=300)
 
 
 def gaussian(data, mean, sigma, weight, D, cluster):
@@ -111,13 +146,12 @@ print('sigma: ', sigma)
 print('1分布に対する共分散sigma[d]', sigma[0].shape)
 
 
-'''
+
 # ======================================
 # ビジュアライズ
-trans_data = data.transpose()
-plt.scatter(trans_data[0, :], trans_data[1, :], c='gray', alpha=0.5, marker="+")
-plt.show()
-'''
+# 出力先の確認と作製
+first_plot(data, mean)
+
 
 # ======================================
 #イテレーション回数は任意
@@ -168,7 +202,7 @@ for iteration in range(100):
         for i in range(len(data)):
             mean_temp[d] += CP[i, d]*data[i]
         mean_temp[d] = mean_temp[d]/CP_sum[d]
-    #mean_pre = mean.copy()
+    mean_pre = np.copy(mean)
     mean = mean_temp.copy()
 
 
@@ -194,22 +228,12 @@ for iteration in range(100):
     print('sigma:', sigma)
 
 
-    '''
     # ======================================
     # ビジュアライズ
-    for i in range(N):
-        plt.scatter(data[i,0], data[i,1], s=30, c=CP[i], alpha=0.5, marker="+")
+    #trans_data = data.transpose()
+    #plt.scatter(trans_data[0, :], trans_data[1, :], c='gray', alpha=0.5, marker="+")
+    plot(data, D, mean, mean_pre, c, iteration)
 
-    for i in range(D):
-        ax = plt.axes()
-        ax.arrow(mu_pre[i, 0], mu_pre[i, 1], mean[i, 0]-mu_pre[i, 0], mean[i, 1]-mu_pre[i, 1],
-                  lw=0.8, head_width=0.02, head_length=0.02, fc='k', ec='k')
-        plt.scatter([mu_pre[i, 0]], [mu_pre[i, 1]], c=c[i], marker='o', alpha=0.8)
-        plt.scatter([mean[i, 0]], [mean[i, 1]], c=c[i], marker='o', edgecolors='k', linewidths=1)
-    plt.title("step:{}".format(iteration))
-
-    #print_gmm_contour(mean, sigma, weight, D)
-    '''
 
     # ======================================
     # 収束条件の計算と，プログラム終了判定
@@ -224,10 +248,7 @@ for iteration in range(100):
     print('diff:', diff)
 
     if np.abs(diff) < 0.0001:
-        #plt.title('likelihood is converged.')
+        #plt.title('convergence.')
         print('収束しました')
         break
-    '''
-    else:
-        plt.title("iter:{}".format(iteration-3))
-    '''
+
