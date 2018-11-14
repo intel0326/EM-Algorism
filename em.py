@@ -121,7 +121,7 @@ plt.show()
 
 # ======================================
 #イテレーション回数は任意
-for iteration in range(40):
+for iteration in range(100):
 
     print('===========================================')
     print('iteration:', iteration)
@@ -136,6 +136,7 @@ for iteration in range(40):
     #print(MG.shape)
 
 
+    # ======================================
     # モデルパラメータ値で計算される条件付き確率を算出
     MG_sum = np.sum(MG, axis=1)
     #print("MG_sum: ", MG_sum.shape)
@@ -143,7 +144,6 @@ for iteration in range(40):
     #負担率CPを求める
     CP = (MG.T/MG_sum).T
     #print("CP: ", CP)
-
     
 
     # M ステップ ========================================================================
@@ -153,13 +153,13 @@ for iteration in range(40):
     #print("CP_sum: ", CP_sum)
 
 
-
+    # ======================================
     # 重みの更新
     weight =  CP_sum / N
     #print("weight: ", weight)
     
 
-
+    # ======================================
     # 平均の更新
     mean_temp = np.zeros((D, D))
 
@@ -172,7 +172,7 @@ for iteration in range(40):
     mean = mean_temp.copy()
 
 
-
+    # ======================================
     # 共分散行列の更新
     sigma_temp = np.zeros((cluster, D, D))
 
@@ -187,15 +187,16 @@ for iteration in range(40):
     sigma = sigma_temp.copy()
 
 
-
-    # calculate likelihood
-
+    # ======================================
+    # 各種パラメータの出力
     print('weight:', weight)
     print('mean:', mean)
     print('sigma:', sigma)
 
-    # visualize
+
     '''
+    # ======================================
+    # ビジュアライズ
     for i in range(N):
         plt.scatter(data[i,0], data[i,1], s=30, c=CP[i], alpha=0.5, marker="+")
 
@@ -208,4 +209,25 @@ for iteration in range(40):
     plt.title("step:{}".format(iteration))
 
     #print_gmm_contour(mean, sigma, weight, D)
+    '''
+
+    # ======================================
+    # 収束条件の計算と，プログラム終了判定
+    MG_pre = MG
+    MG = gaussian(data, mean, sigma, weight, D, cluster)
+    
+    #要編集
+    sum_log_MG_pre = np.sum(np.log(MG_pre))
+    sum_log_MG = np.sum(np.log(MG))
+    diff = sum_log_MG_pre - sum_log_MG
+    print('sum of log MG:', sum_log_MG)
+    print('diff:', diff)
+
+    if np.abs(diff) < 0.0001:
+        #plt.title('likelihood is converged.')
+        print('収束しました')
+        break
+    '''
+    else:
+        plt.title("iter:{}".format(iteration-3))
     '''
