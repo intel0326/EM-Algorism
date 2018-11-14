@@ -236,17 +236,6 @@ for iteration in range(100):
 
 
     # calculate likelihood
-    '''
-    prev_likelihood = MG
-    MG = MixtureGaussian(data, mean, sigma, weight, D, cluster)
-
-    prev_sum_log_likelihood = np.sum(np.log(prev_likelihood))
-    sum_log_likelihood = np.sum(np.log(MG))
-    diff = prev_sum_log_likelihood - sum_log_likelihood
-
-    print('sum of log likelihood:', sum_log_likelihood)
-    print('diff:', diff)
-    '''
 
     print('weight:', weight)
     print('mean:', mean)
